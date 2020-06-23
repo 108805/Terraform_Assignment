@@ -1,15 +1,16 @@
-provider "docker" {
-  host = "tcp://localhost:2375"
+provider "aws" {
+  region = var.aws_region
 }
-resource "docker_container" "mysql_container" {
-  image = docker_image.mysql_image.latest
-  name = var.container_name
-  volumes {
-    volume_name = docker_volume.mysql_data_volume.name
-    container_path = "/var/lib/mysql"
+
+resource "random_id" "tf_bucket_id" {
+  byte_length = 2
+}
+
+resource "aws_s3_bucket" "tf_code" {
+  bucket        = "${var.project_name}-${random_id.tf_bucket_id.dec}"
+  acl           = "private"
+  force_destroy = true
+  tags = {
+    name = "tf_bucket"
   }
-  networks_advanced {
-    name = var.mysql_network_name
-  }
-  env = ["MYSQL_ROOT_PASSWORD=P4sSw0rd0!"]
 }
