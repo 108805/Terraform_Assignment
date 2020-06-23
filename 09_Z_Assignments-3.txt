@@ -1,0 +1,280 @@
+Adding Maps and Lookups in your Terraform files
+The lab files can be found @ https://github.com/satyensingh/terraform-assignment-resources.git
+In the repo you will find main.tf, outputs.tf, and variables.tf.
+Add a new variable called env. Set a description to “env: dev or prod”.
+Convert the type from image_name to map.
+
+Change the default to use key/value pairs. Set dev to ghost:latest and prod to ghost:alpine.
+
+Convert container_name to a map. Change the default to use key/value pairs. Set dev to blog_dev and prod to blog_prod.
+
+Convert ext_port to a map. Change the default to use key/value pairs. Set dev to 8080 and prod to 80.
+
+Now initialize Terraform.
+
+Setup the Development environment
+Create a workspace called dev.
+Generate a Terraform plan. Output the plan and call it tfdev_plan. Pass in a variable called env and set it to dev.
+Apply tfdev_plan.
+
+Setup the Production environment
+Create a workspace called prod.
+Generate a Terraform plan. Output the plan and call it tfprod_plan. Pass in a variable called env and set it to prod.
+Apply tfprod_plan.
+
+Verify both environments work
+Open a browser and navigate to the public IP. This should pull up the production environment.
+Open a browser tab and navigate to the public IP on port 8080. This should pull up the development environment.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+step1:-
+-->cat outputs.tf
+
+#Output the IP Address of the Container
+output "ip_address" {
+  value       = "${docker_container.container_id.ip_address}"
+  description = "The IP for the container."
+}
+
+output "container_name" {
+  value       = "${docker_container.container_id.name}"
+  description = "The name of the container."
+}
+
+-->cat varible.tf
+
+#Define variables
+variable "image_name" {
+  type = map
+  description = "Image for container."
+  default     = {
+        dev = "ghost:latest"
+        prod = "ghost:alpine"
+     }
+}
+
+variable "container_name" {
+  type = map
+  description = "Name of the container."
+  default     = {
+        dev = "blog_dev"
+        prod = "blog_prod"
+     }
+}
+
+variable "ext_port" {
+  type = map
+  description = "External port for container."
+  default     = {
+        dev = "8088"
+        prod = "88"
+     }
+}
+
+variable "env" {
+  description = "env: dev or prod"
+  default     = "dev"
+}
+
+-->cat main.tf
+
+# Download the latest Ghost Image
+resource "docker_image" "image_id" {
+  name = var.image_name["${var.env}"]
+
+}
+
+# Start the Container
+resource "docker_container" "container_id" {
+  name  = var.container_name["${var.env}"]
+  image = docker_image.image_id.latest
+  ports {
+    internal = "2368"
+    external = var.ext_port["${var.env}"]
+  }
+}
+
+
+step2:-Create a workspace called dev:
+
+ubuntu@ip-172-31-4-147:~$ terraform workspace new dev
+Created and switched to workspace "dev"!
+
+You're now on a new, empty workspace. Workspaces isolate their state,
+so if you run "terraform plan" Terraform will not see any existing state
+for this configuration.
+
+
+ubuntu@ip-172-31-4-147:~$ terraform plan -out=tfdev_plan -var 'env=dev'
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but will not be
+persisted to local or remote state storage.
+
+
+------------------------------------------------------------------------
+
+An execution plan has been generated and is shown below.
+Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # docker_container.container_id will be created
+  + resource "docker_container" "container_id" {
+      + attach           = false
+      + bridge           = (known after apply)
+      + container_logs   = (known after apply)
+      + exit_code        = (known after apply)
+      + gateway          = (known after apply)
+      + id               = (known after apply)
+      + image            = (known after apply)
+      + ip_address       = (known after apply)
+      + ip_prefix_length = (known after apply)
+      + log_driver       = "json-file"
+      + logs             = false
+      + must_run         = true
+      + name             = "blog_dev"
+      + network_data     = (known after apply)
+      + read_only        = false
+      + restart          = "no"
+      + rm               = false
+      + start            = true
+
+      + ports {
+          + external = 8088
+          + internal = 2368
+          + ip       = "0.0.0.0"
+          + protocol = "tcp"
+        }
+    }
+
+  # docker_image.image_id will be created
+  + resource "docker_image" "image_id" {
+      + id     = (known after apply)
+      + latest = (known after apply)
+      + name   = "ghost:latest"
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+------------------------------------------------------------------------
+
+This plan was saved to: tfdev_plan
+
+To perform exactly these actions, run the following command to apply:
+    terraform apply "tfdev_plan"
+
+ubuntu@ip-172-31-4-147:~$  docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
+4d990dfdd5f0        7a562dfa21a3        "docker-entrypoint.s…"   18 hours ago        Up 18 hours         0.0.0.0:8099->2368/tcp   ghost_blogs
+
+
+ubuntu@ip-172-31-4-147:~$ terraform workspace new prod
+Created and switched to workspace "prod"!
+
+You're now on a new, empty workspace. Workspaces isolate their state,
+so if you run "terraform plan" Terraform will not see any existing state
+for this configuration.
+
+
+ubuntu@ip-172-31-4-147:~$ erraform plan -out=tfprod_plan -var 'env=prod'
+
+Command 'erraform' not found, did you mean:
+
+  command 'terraform' from snap terraform (v0.11.11)
+
+See 'snap info <snapname>' for additional versions.
+
+ubuntu@ip-172-31-4-147:~$ terraform plan -out=tfprod_plan -var 'env=prod'
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but will not be
+persisted to local or remote state storage.
+
+
+------------------------------------------------------------------------
+
+An execution plan has been generated and is shown below.
+Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # docker_container.container_id will be created
+  + resource "docker_container" "container_id" {
+      + attach           = false
+      + bridge           = (known after apply)
+      + container_logs   = (known after apply)
+      + exit_code        = (known after apply)
+      + gateway          = (known after apply)
+      + id               = (known after apply)
+      + image            = (known after apply)
+      + ip_address       = (known after apply)
+      + ip_prefix_length = (known after apply)
+      + log_driver       = "json-file"
+      + logs             = false
+      + must_run         = true
+      + name             = "blog_prod"
+      + network_data     = (known after apply)
+      + read_only        = false
+      + restart          = "no"
+      + rm               = false
+      + start            = true
+
+      + ports {
+          + external = 88
+          + internal = 2368
+          + ip       = "0.0.0.0"
+          + protocol = "tcp"
+        }
+    }
+
+  # docker_image.image_id will be created
+  + resource "docker_image" "image_id" {
+      + id     = (known after apply)
+      + latest = (known after apply)
+      + name   = "ghost:alpine"
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+------------------------------------------------------------------------
+
+This plan was saved to: tfprod_plan
+
+To perform exactly these actions, run the following command to apply:
+    terraform apply "tfprod_plan"
+
+
+ubuntu@ip-172-31-4-147:~$ terraform apply "tfprod_plan"
+docker_image.image_id: Creating...
+docker_image.image_id: Creation complete after 0s [id=sha256:7a562dfa21a3d6aa7e2ad74d1301b849c5ab13504df6607682f1ea2831626583ghost:alpine]
+docker_container.container_id: Creating...
+docker_container.container_id: Creation complete after 1s [id=f4c47d94fd8a6d929b39794632c03b0f7c7df8726523573de0fbe70377d9c044]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+The state of your infrastructure has been saved to the path
+below. This state is required to modify and destroy your
+infrastructure, so keep it safe. To inspect the complete state
+use the `terraform show` command.
+
+State path: terraform.tfstate
+
+Outputs:
+
+container_name = blog_prod
+ip_address = 172.17.0.3
+
+ubuntu@ip-172-31-4-147:~$ docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
+f4c47d94fd8a        7a562dfa21a3        "docker-entrypoint.s…"   6 seconds ago       Up 5 seconds        0.0.0.0:88->2368/tcp     blog_prod
+4d990dfdd5f0        7a562dfa21a3        "docker-entrypoint.s…"   18 hours ago        Up 18 hours         0.0.0.0:8099->2368/tcp   ghost_blogs
+
+
+testing:-
+
+After hitting  http://172.31.4.147:8088/ URL in browser i am getting ghost web page.(DEV Environment)
+
+Ater hitting http://172.31.4.147:88/ URL in browser, i am getting ghost web page (PROD Environment)

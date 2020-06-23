@@ -1,0 +1,31 @@
+Create a file called main.tf.
+Create a docker image resource and call it nginx_image.
+Set the name of the image to nginx:latest.
+Save and exit the file.
+
+Initialize Terraform.
+Plan the deploy and output a terraform plan called tf_image_plan.
+Apply the plan using tf_image_plan.
+
+
+--------------------------------------------------------------------------------------------------------------------
+
+vi main.tf
+resource "docker image" "image_id" {
+       name = "nginx:latest"
+}
+
+
+Initialize Terraform.
+terraform init
+
+Plan the deploy and output a terraform plan called tf_image_plan.
+terraform plan -out=tf_image_plan
+
+Apply the plan using tf_image_plan.
+terraform apply  tf_image_plan
+
+ubuntu@ip-172-31-4-147:~$ docker images
+
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+nginx               latest              231d40e811cd        13 days ago         126MB

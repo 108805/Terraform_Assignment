@@ -1,0 +1,88 @@
+Create a new Terraform file called main.tf.
+Create three variables.
+The first variable, called image_name, needs to be set to ghost:latest.
+The second variable is called container_name with a default of ghost_blog.
+The final variable is called ext_port and set the default to port 80.
+
+Create a Docker image resource called ghost_image that uses the image_name variable.
+
+Create a Docker container resource called ghost_container.
+The name will use the container_name variable.
+The image will use the ghost_image resource.
+The internal port will be set to 2368.
+The external port will use ext_port variable.
+
+Initialize Terraform.
+
+Create a Terraform plan that uses the following variables:
+
+container_name = ghost_blog1
+image_name = ghost:alpine
+ext_port = 8080
+Output the plan to a file called tfplan.
+
+Then apply the plan using tfplan and make sure that the apply doesn’t prompt for input.
+
+-----------------------------------------------------------------------------------------------------------------------
+
+Create main file:
+
+#main file
+#Image resource
+resource "docker_image" "ghost_image"{
+name = "${var.image_name}"
+}
+#Container resource
+resource "docker_container" "ghost_container"{
+name  = "${var.container_name}"
+image = "${docker_image.ghost_image.latest}"
+ports {
+ internal = "2368"
+ external = "${var.ext_port}"
+}
+}
+#variables
+variable "image_name"{
+default = "ghost:latest"
+description = "This is the Image"
+}
+variable "container_name"{
+default = "ghost_blog"
+description = "This is the Container"
+}
+variable "ext_port"{
+ default = "80"
+ description = "This is the Default port"
+} 
+
+
+ubuntu@ip-172-31-4-147:~$ vi main.tf
+ubuntu@ip-172-31-4-147:~$ vi main.tf
+ubuntu@ip-172-31-4-147:~$ ls -lta
+total 15624
+drwxr-xr-x 7 ubuntu ubuntu     4096 Dec  9 06:24 .
+-rw------- 1 ubuntu ubuntu     1271 Dec  9 06:24 .viminfo
+-rw-r--r-- 1 ubuntu ubuntu      566 Dec  9 06:24 main.tf
+-rw------- 1 ubuntu ubuntu      847 Dec  6 12:59 .bash_history
+-rw-rw-r-- 1 ubuntu ubuntu      780 Dec  6 12:26 terraform.tfstate
+-rw-rw-r-- 1 ubuntu ubuntu     1348 Dec  6 12:25 tf_image_plan
+drwxr-xr-x 3 ubuntu ubuntu     4096 Dec  6 11:14 .terraform
+-rw-rw-r-- 1 ubuntu ubuntu      101 Dec  6 11:11 1
+drwxr-xr-x 2 ubuntu ubuntu     4096 Dec  6 11:01 .terraform.d
+-rw-r--r-- 1 ubuntu ubuntu        0 Dec  6 10:25 .sudo_as_admin_successful
+drwx------ 2 ubuntu ubuntu     4096 Dec  6 10:25 .cache
+drwx------ 3 ubuntu ubuntu     4096 Apr  6 10:25 .gnupg
+drwx------ 2 ubuntu ubuntu     4096 Apr  6 10:23 .ssh
+drwxr-xr-x 3 root   root       4096 Apr  6 10:23 ..
+-rw-r--r-- 1 root   root   15931476 Jun 21 20:03 terraform_0.12.7_linux_amd64.zip
+-rw-r--r-- 1 ubuntu ubuntu      220 Jun 21  2020 .bash_logout
+-rw-r--r-- 1 ubuntu ubuntu     3771 Jun 21  2020 .bashrc
+-rw-r--r-- 1 ubuntu ubuntu      807 Jun 21  2020 .profile
+
+ubuntu@ip-172-31-4-147:~$ terraform validate
+Success! The configuration is valid.
+
+ubuntu@ip-172-31-4-147:~$ terraform plan -out=tfplan
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but will not be
+persisted to local or remote state storage.
